@@ -19,15 +19,21 @@ Replace this paragraph with your own summary of what your version does.
 
 Explain your design in plain language.
 
-Some prompts to answer:
+Real-world recommendation systems like Spotify or YouTube work by building a model of your taste and then finding content that matches it. They do this two ways: collaborative filtering uses the behavior of millions of other users — if people who liked the same songs as you also loved a particular artist, the system recommends that artist to you too. Content-based filtering takes a different angle, it looks at the actual attributes of songs you've enjoyed (tempo, energy, mood, genre) and finds other songs with similar characteristics, without needing to know what anyone else listened to. Most production systems blend both approaches to get the best of each.
 
-- What features does each `Song` use in your system
-  - For example: genre, mood, energy, tempo
-- What information does your `UserProfile` store
-- How does your `Recommender` compute a score for each song
-- How do you choose which songs to recommend
 
-You can include a simple diagram or bullet list if helpful.
+My version focuses purely on content-based filtering, which I can build without any user history data. It prioritizes genre and mood as the strongest signals of taste, then uses numerical features like energy and danceability to break ties and add nuance. The philosophy is: get the broad category right first (genre), then match the feeling (mood), then fine-tune by how intense or danceable the song actually is.
+
+Algorithm Recipe:
+
+Rule Points
+Genre match +2.0
+Mood match +1.0
+Energy proximity 0–1.0
+Danceability proximity 0–0.5
+Valence proximity 0–0.5
+Max possible score: 5.0
+Genre is weighted highest because it's the strongest signal for musical preference. Energy and mood together account for "vibe." Danceability and valence add nuance.
 
 ---
 
@@ -208,4 +214,5 @@ A few sentences about what you learned:
 - What surprised you about how your system behaved
 - How did building this change how you think about real music recommenders
 - Where do you think human judgment still matters, even if the model seems "smart"
+
 
