@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tunes4You 2.0</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:ital,wght@0,300;0,400;1,300&display=swap');
+  :root {
+    --bg:#0a0a0f; --surface:#12121a; --surface2:#1a1a26; --border:#2a2a3e;
+    --accent:#7c6aff; --accent2:#ff6a9b; --accent3:#6affcc;
+    --text:#e8e8f0; --text2:#8888aa; --text3:#55556a;
+    --pass:#6affcc; --warn:#ffd060; --fail:#ff6a9b; --info:#7c6aff;
+  }
+  *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:'DM Mono',monospace; background:var(--bg); color:var(--text); min-height:100vh; }
+
+  .blob { position:fixed; border-radius:50%; filter:blur(120px); pointer-events:none; z-index:0; opacity:0.1; }
+  .b1 { width:500px; height:500px; background:var(--accent); top:-150px; left:-100px; }
+  .b2 { width:350px; height:350px; background:var(--accent2); bottom:-80px; right:-50px; }
+
+  .app { position:relative; z-index:1; max-width:1060px; margin:0 auto; padding:0 20px 80px; }
+
+  header { padding:40px 0 32px; border-bottom:1px solid var(--border); margin-bottom:32px; display:flex; align-items:flex-end; justify-content:space-between; }
+  h1 { font-family:'Syne',sans-serif; font-weight:800; font-size:clamp(1.8rem,4vw,2.8rem); background:linear-gradient(135deg,var(--accent),var(--accent2),var(--accent3)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+  .tagline { font-size:.7rem; color:var(--text2); margin-top:6px; letter-spacing:.08em; text-transform:uppercase; }
+  .badge { font-size:.65rem; background:var(--surface2); border:1px solid var(--border); color:var(--accent); padding:5px 10px; border-radius:4px; letter-spacing:.08em; white-space:nowrap; }
+
+  .grid { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+  @media(max-width:680px){ .grid{ grid-template-columns:1fr; } }
+  .full { grid-column:1/-1; }
+
+  .card { background:var(--surface); border:1px solid var(--border); border-radius:12px; overflow:hidden; }
+  .card-head { padding:12px 18px; border-bottom:1px solid var(--border); background:var(--surface2); display:flex; align-items:center; justify-content:space-between; }
+  .card-title { font-family:'Syne',sans-serif; font-weight:700; font-size:.75rem; letter-spacing:.06em; text-transform:uppercase; }
+  .card-sub { font-size:.65rem; color:var(--text3); }
+  .card-body { padding:18px; }
+
+  textarea { width:100%; height:80px; resize:none; background:var(--surface2); border:1px solid var(--border); border-radius:8px; color:var(--text); font-family:'DM Mono',monospace; font-size:.82rem; padding:12px 16px; outline:none; transition:border-color .2s; line-height:1.6; }
+  textarea:focus { border-color:var(--accent); }
+  textarea::placeholder { color:var(--text3); font-style:italic; }
+
+  .chips { display:flex; flex-wrap:wrap; gap:6px; margin:10px 0; }
+  .chip { font-size:.63rem; padding:4px 10px; border-radius:4px; border:1px solid var(--border); background:var(--surface2); color:var(--text2); cursor:pointer; transition:all .15s; letter-spacing:.04em; }
+  .chip:hover { border-color:var(--accent); color:var(--accent); }
+
+  .btn { font-family:'Syne',sans-serif; font-weight:700; font-size:.78rem; letter-spacing:.08em; text-transform:uppercase; padding:11px 24px; background:var(--accent); color:#fff; border:none; border-radius:8px; cursor:pointer; transition:all .18s; }
+  .btn:hover { background:#9580ff; transform:translateY(-1px); }
+  .btn:disabled { opacity:.4; cursor:not-allowed; transform:none; }
+
+  .reasoning { font-size:.74rem; line-height:1.75; color:var(--text2); font-style:italic; }
+  .flags { font-size:.68rem; color:var(--warn); margin-top:8px; }
+
+  .profile-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:12px; }
+  .pi { background:var(--surface2); border:1px solid var(--border); border-radius:6px; padding:8px 12px; }
+  .pi-label { font-size:.6rem; text-transform:uppercase; letter-spacing:.08em; color:var(--text3); margin-bottom:3px; }
+  .pi-val { font-size:.78rem; color:var(--accent); }
+
+  .guard { display:flex; gap:9px; padding:9px 11px; border-radius:6px; font-size:.7rem; line-height:1.5; margin-bottom:7px; border:1px solid transparent; }
+  .guard:last-child { margin-bottom:0; }
+  .guard.pass { background:rgba(106,255,204,.06); border-color:rgba(106,255,204,.18); }
+  .guard.warn { background:rgba(255,208,96,.06);  border-color:rgba(255,208,96,.2); }
+  .guard.fail { background:rgba(255,106,155,.07); border-color:rgba(255,106,155,.2); }
+  .guard-icon { flex-shrink:0; width:14px; }
+  .guard-title { font-weight:700; color:var(--text); margin-bottom:1px; }
+  .guard-detail { color:var(--text2); font-size:.65rem; }
+
+  .result-row { display:grid; grid-template-columns:28px 1fr 64px; gap:14px; padding:14px 0; border-bottom:1px solid var(--border); align-items:start; }
+  .result-row:last-child { border-bottom:none; }
+  .rank { font-family:'Syne',sans-serif; font-size:1rem; font-weight:800; color:var(--text3); text-align:right; padding-top:2px; }
+  .rank.hi { color:var(--accent); }
+  .song-title { font-family:'Syne',sans-serif; font-weight:700; font-size:.9rem; margin-bottom:2px; }
+  .song-meta { font-size:.68rem; color:var(--text2); margin-bottom:7px; }
+  .pills { display:flex; flex-wrap:wrap; gap:4px; }
+  .pill { font-size:.6rem; padding:2px 7px; border-radius:3px; border:1px solid transparent; }
+  .pill-genre  { background:rgba(124,106,255,.14); color:#a99aff; border-color:rgba(124,106,255,.25); }
+  .pill-mood   { background:rgba(255,106,155,.12); color:#ff9abc; border-color:rgba(255,106,155,.22); }
+  .pill-energy { background:rgba(106,255,204,.1);  color:#7af5d0; border-color:rgba(106,255,204,.2); }
+  .pill-other  { background:rgba(255,255,255,.05); color:var(--text2); border-color:var(--border); }
+  .score-num { font-family:'Syne',sans-serif; font-size:1.2rem; font-weight:800; text-align:right; margin-bottom:5px; }
+  .bar-track { height:3px; background:var(--border); border-radius:2px; overflow:hidden; }
+  .bar-fill { height:100%; border-radius:2px; background:var(--accent3); transition:width .7s ease; }
+
+  .conf-strip { display:flex; align-items:center; gap:10px; padding:10px 18px; border-top:1px solid var(--border); font-size:.68rem; color:var(--text2); }
+  .conf-track { flex:1; height:3px; background:var(--border); border-radius:2px; overflow:hidden; }
+  .conf-fill { height:100%; border-radius:2px; transition:width .9s ease; }
+
+  .stats { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
+  @media(max-width:500px){ .stats{ grid-template-columns:repeat(2,1fr); } }
+  .stat { background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:12px 14px; }
+  .stat-label { font-size:.6rem; text-transform:uppercase; letter-spacing:.08em; color:var(--text3); margin-bottom:4px; }
+  .stat-val { font-family:'Syne',sans-serif; font-size:.95rem; font-weight:700; color:var(--text); }
+  .stat-sub { font-size:.62rem; color:var(--text2); margin-top:2px; }
+
+  .empty { text-align:center; padding:2rem 1rem; color:var(--text3); font-size:.74rem; font-style:italic; }
+  .dots { display:flex; gap:4px; justify-content:center; margin-bottom:8px; }
+  .dots span { width:5px; height:5px; border-radius:50%; background:var(--accent); animation:pulse 1.2s ease-in-out infinite; }
+  .dots span:nth-child(2){ animation-delay:.2s; }
+  .dots span:nth-child(3){ animation-delay:.4s; }
+  @keyframes pulse { 0%,80%,100%{opacity:.2;transform:scale(.8)} 40%{opacity:1;transform:scale(1)} }
+</style>
+</head>
+<body>
+<div class="b1 blob"></div>
+<div class="b2 blob"></div>
+
+<div class="app">
+  <header>
+    <div>
+      <h1>Tunes4You 2.0</h1>
+      <div class="tagline">Keyword Extractor · Flask Backend · Content-Based Scoring</div>
+    </div>
+    <div class="badge">localhost:5000 · no API key needed</div>
+  </header>
+
+  <div class="grid" style="margin-bottom:20px">
+    <div class="card full">
+      <div class="card-head"><span class="card-title">Describe your vibe</span><span class="card-sub">Natural language → AI taste profile → ranked songs</span></div>
+      <div class="card-body">
+        <textarea id="vibeInput" placeholder="e.g. late-night drive, melancholy but not too slow, atmospheric and electronic..."></textarea>
+        <div class="chips" id="chipRow"></div>
+        <div style="display:flex;gap:10px;align-items:center;margin-top:10px;flex-wrap:wrap">
+          <button class="btn" id="findBtn" onclick="findVibes()">Find My Vibe →</button>
+          <span style="font-size:.65rem;color:var(--text3)">Ctrl+Enter</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" id="reasoningCard">
+      <div class="card-head">
+        <span class="card-title">Keyword Reasoning</span>
+        <span class="card-sub" id="confBadge"></span>
+      </div>
+      <div class="card-body" id="reasoningBody">
+        <div class="empty">Keyword extraction will interpret your description and show the detected signals here.</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><span class="card-title">Guardrails</span></div>
+      <div class="card-body" id="guardrailsBody">
+        <div class="guard" style="background:rgba(124,106,255,.06);border-color:rgba(124,106,255,.2)">
+          <span class="guard-icon">i</span>
+          <div><div class="guard-title">4 checks active</div><div class="guard-detail">Input validation · catalog coverage · confidence threshold · bias detection</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card full" id="resultsCard">
+      <div class="card-head">
+        <span class="card-title">Recommendations</span>
+        <span class="card-sub" id="resultMeta"></span>
+      </div>
+      <div class="card-body" id="resultsBody">
+        <div class="empty">Your top 5 matches will appear here.</div>
+      </div>
+      <div class="conf-strip" id="confStrip" style="display:none">
+        <span style="font-size:.6rem;text-transform:uppercase;letter-spacing:.07em;color:var(--text3)">Confidence</span>
+        <div class="conf-track"><div class="conf-fill" id="confFill" style="width:0%"></div></div>
+        <span id="confPct" style="font-size:.68rem"></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><div class="stat-label">Architecture</div><div class="stat-val">Hybrid</div><div class="stat-sub">LLM + content scorer</div></div>
+    <div class="stat"><div class="stat-label">Catalog</div><div class="stat-val">24</div><div class="stat-sub">songs · 6 genres</div></div>
+    <div class="stat"><div class="stat-label">Backend</div><div class="stat-val">Flask</div><div class="stat-sub">Python · keyword extractor</div></div>
+    <div class="stat"><div class="stat-label">Queries</div><div class="stat-val" id="qCount">0</div><div class="stat-sub">this session</div></div>
+  </div>
+</div>
+
+<script>
+let qCount = 0;
+const CHIPS = [
+  ["Late-night drive","late-night drive, melancholy but not too slow, atmospheric"],
+  ["Workout","intense workout, very high energy, aggressive, no slow songs"],
+  ["Deep focus","studying, calm and focused, minimal, acoustic preferred"],
+  ["Happy pop","happy upbeat pop, dancing, fun and energetic"],
+  ["Heavy rock","heavy rock, very intense, distorted guitars"],
+  ["Rainy day","rainy day indoors, cozy, slow, a little sad"],
+];
+document.getElementById('chipRow').innerHTML = CHIPS.map(
+  ([l,v]) => `<button class="chip" onclick="document.getElementById('vibeInput').value=${JSON.stringify(v)}">${l}</button>`
+).join('');
+
+document.getElementById('vibeInput').addEventListener('keydown', e => {
+  if (e.key==='Enter' && (e.ctrlKey||e.metaKey)) findVibes();
+});
+
+function thinking(id, msg) {
+  document.getElementById(id).innerHTML = `<div class="empty"><div class="dots"><span></span><span></span><span></span></div>${msg}</div>`;
+}
+
+async function findVibes() {
+  const vibe = document.getElementById('vibeInput').value.trim();
+  if (!vibe) return;
+  const btn = document.getElementById('findBtn');
+  btn.disabled = true; btn.textContent = 'Thinking…';
+  qCount++; document.getElementById('qCount').textContent = qCount;
+  document.getElementById('confStrip').style.display = 'none';
+  document.getElementById('resultMeta').textContent = '';
+  document.getElementById('confBadge').textContent = '';
+  thinking('reasoningBody', 'Claude is reading your vibe…');
+  thinking('guardrailsBody', 'Running checks…');
+  thinking('resultsBody', 'Scoring songs…');
+
+  try {
+    const res = await fetch('/recommend', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({vibe})
+    });
+    if (!res.ok) throw new Error(`Server error ${res.status}`);
+    const {profile, results, guardrails} = await res.json();
+
+    // Reasoning panel
+    document.getElementById('reasoningBody').innerHTML = `
+      <p class="reasoning">"${profile.reasoning}"</p>
+      ${profile.flags?.length ? `<p class="flags">Note: ${profile.flags.join(' · ')}</p>` : ''}
+      <div class="profile-grid">
+        <div class="pi"><div class="pi-label">Genre</div><div class="pi-val">${profile.favorite_genre}</div></div>
+        <div class="pi"><div class="pi-label">Mood</div><div class="pi-val">${profile.favorite_mood}</div></div>
+        <div class="pi"><div class="pi-label">Energy</div><div class="pi-val">${profile.target_energy}</div></div>
+        <div class="pi"><div class="pi-label">Acoustic</div><div class="pi-val">${profile.likes_acoustic ? 'yes' : 'no'}</div></div>
+      </div>`;
+    const confPct = Math.round((profile.confidence||0)*100);
+    document.getElementById('confBadge').textContent = `${confPct}% confident`;
+
+    // Guardrails
+    document.getElementById('guardrailsBody').innerHTML = guardrails.map(c => `
+      <div class="guard ${c.status}">
+        <span class="guard-icon">${c.status==='pass'?'✓':c.status==='warn'?'!':'✕'}</span>
+        <div><div class="guard-title">${c.title}</div><div class="guard-detail">${c.detail}</div></div>
+      </div>`).join('');
+
+    // Results
+    const maxScore = results[0]?.score || 1;
+    document.getElementById('resultsBody').innerHTML = results.map((r,i) => {
+      const pct = Math.round((r.score/maxScore)*100);
+      const color = i<3 ? 'var(--accent3)' : 'var(--text2)';
+      const pills = r.reasons.map(rr => `<span class="pill pill-${rr.type}">${rr.text}</span>`).join('');
+      return `<div class="result-row">
+        <div class="rank${i<3?' hi':''}">${i+1}</div>
+        <div>
+          <div class="song-title">${r.song.title}</div>
+          <div class="song-meta">${r.song.artist} · ${r.song.genre} · ${r.song.mood} · energy ${r.song.energy}</div>
+          <div class="pills">${pills}</div>
+        </div>
+        <div>
+          <div class="score-num" style="color:${color}">${r.score.toFixed(2)}</div>
+          <div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div>
+        </div>
+      </div>`;
+    }).join('');
+    document.getElementById('resultMeta').textContent = `top 5 of 24 songs`;
+
+    // Confidence bar
+    const confVal = Math.round((profile.confidence||results[0].score/4.5)*100);
+    const confColor = confVal>=70?'var(--pass)':confVal>=45?'var(--info)':'var(--warn)';
+    document.getElementById('confFill').style.cssText = `width:${confVal}%;background:${confColor}`;
+    document.getElementById('confPct').textContent = `${confVal}% confident`;
+    document.getElementById('confStrip').style.display = 'flex';
+
+  } catch(err) {
+    document.getElementById('reasoningBody').innerHTML = `<div class="empty" style="color:var(--fail)">Error: ${err.message}</div>`;
+    document.getElementById('resultsBody').innerHTML = `<div class="empty" style="color:var(--fail)">Could not reach server — is app.py running?</div>`;
+  }
+  btn.disabled = false; btn.textContent = 'Find My Vibe →';
+}
+</script>
+</body>
+</html>
