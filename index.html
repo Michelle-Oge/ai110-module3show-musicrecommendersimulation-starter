@@ -110,7 +110,7 @@
       <h1>Tunes4You 2.0</h1>
       <div class="tagline">Keyword Extractor · Flask Backend · Content-Based Scoring</div>
     </div>
-    <div class="badge">localhost:5000 · no API key needed</div>
+    <div class="badge">Running on localhost:5000</div>
   </header>
 
   <div class="grid" style="margin-bottom:20px">
@@ -181,8 +181,12 @@ const CHIPS = [
   ["Rainy day","rainy day indoors, cozy, slow, a little sad"],
 ];
 document.getElementById('chipRow').innerHTML = CHIPS.map(
-  ([l,v]) => `<button class="chip" onclick="document.getElementById('vibeInput').value=${JSON.stringify(v)}">${l}</button>`
+  ([l], i) => `<button class="chip" onclick="setChip(${i})">${l}</button>`
 ).join('');
+
+function setChip(i) {
+  document.getElementById('vibeInput').value = CHIPS[i][1];
+}
 
 document.getElementById('vibeInput').addEventListener('keydown', e => {
   if (e.key==='Enter' && (e.ctrlKey||e.metaKey)) findVibes();

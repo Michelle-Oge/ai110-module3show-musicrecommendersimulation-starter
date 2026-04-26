@@ -12,8 +12,6 @@ app = Flask(__name__, static_folder=".")
 CORS(app)
 
 
-# ── Load catalog ───────────────────────────────────────────────────────────────
-
 def load_songs(path="data/songs.csv"):
     songs = []
     with open(path, newline="", encoding="utf-8") as f:
@@ -34,8 +32,6 @@ def load_songs(path="data/songs.csv"):
 
 SONGS = load_songs()
 
-
-# ── Local keyword-based profile extractor (no API key needed) ──────────────────
 
 def extract_profile_locally(text):
     t = text.lower()
@@ -80,7 +76,7 @@ def extract_profile_locally(text):
         "piano","instrumental","organic","natural sound"
     ])
 
-    # Confidence: rough heuristic based on how many signals matched
+    # Confidence
     matched = sum([
         genre != "pop",
         mood != "happy",
@@ -107,8 +103,6 @@ def extract_profile_locally(text):
         ],
     }
 
-
-# ── Content-based scorer ───────────────────────────────────────────────────────
 
 def score_song(prefs, song):
     score = 0.0
@@ -153,8 +147,6 @@ def recommend(prefs, k=5):
     return sorted(results, key=lambda x: x["score"], reverse=True)[:k]
 
 
-# ── Guardrails ─────────────────────────────────────────────────────────────────
-
 def run_guardrails(user_input, prefs, results):
     checks = []
 
@@ -193,8 +185,6 @@ def run_guardrails(user_input, prefs, results):
 
     return checks
 
-
-# ── Routes ─────────────────────────────────────────────────────────────────────
 
 @app.route("/")
 def index():
