@@ -176,7 +176,7 @@ Max possible score:     5.0
 1. Clone or download the project
 
 2. Install dependencies
-bashpip install flask flask-cors
+bash pip install flask flask-cors
 3. Run the server
 bashpython app.py
 4. Open your browser
@@ -279,4 +279,6 @@ Building Tunes4You 2.0 taught me that the hardest part of an AI system is not th
 It also changed how I think about explainability. Adding reason pills to each result; "genre match: lofi (+2.0)" made the system feel trustworthy in a way that a bare ranked list did not. Users could see exactly why a song appeared and disagree with the reasoning if it was wrong. 
 Finally, the guardrail checks taught me that responsible AI design is not about preventing every failure, it is about making failures visible.
 
+Systems Architure Diagram Image in diagrams folder:
 
+![System Architecture](architecture.png)

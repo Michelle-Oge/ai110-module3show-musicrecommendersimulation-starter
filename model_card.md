@@ -1,93 +1,148 @@
 # 🎧 Model Card: Music Recommender Simulation
 
-## 1. Model Name  
+## 1. Model Name
 
-Tunes4You
+> Tunes4You 2.0
+
+Tunes4You 2.0 is AI Music Recommender
+A full-stack music recommendation system that takes a natural language vibe description, extracts a taste profile using keyword analysis, scores a 24-song catalog, and returns ranked recommendations with plain-English explanations and live guardrail checks.
+---
+
+## 2. Original project Summary
+
+VibeFinder 1.0 was a command-line Python simulation built during Phase 1–3 of this module. Its goal was to explore how content-based filtering works by scoring songs in a CSV against a hardcoded user profile dictionary. Users had to manually edit Python code to change their preferences, the system printed results in the terminal only, and there were no guardrails, no web interface, and no natural language input. It demonstrated the core algorithm but required programming knowledge to use.
 
 ---
 
-## 2. Intended Use  
+## 3. Title and Summary
 
-Tunes4You is designed to suggest songs from a small catalog that match a user's stated musical taste. You tell it your favorite genre, preferred mood, and how energetic you want the music to feel, and it returns five songs ranked by how well they fit.
-It assumes the user already knows what they like and can describe it in simple terms. Genre, mood, and energy level. It does not learn from listening history or adapt over time. This is a classroom simulation built to explore how content-based recommendation logic works, not a production tool for real music apps.
-
----
-
-## 3. How the Model Works  
-
-For every song in the catalog, it awards points in four areas:
-
-Genre: if the song's genre matches your favorite, it gets a big bonus (+2 points). This is the single most important factor.
-
-Mood: if the song's mood (happy, sad, calm, intense) matches yours, it gets another bonus (+1 point).
-
-Energy: songs closer to your target energy level score higher. A perfect energy match gives +1 point; a song on the opposite end of the scale gives close to zero.
-
-Acoustic feel: if you prefer acoustic music, songs with higher acousticness score better. If you prefer produced/electronic sound, low-acousticness songs score better. This is worth up to +0.5 points.
-
-Once every song has a total score (maximum possible: 4.5 points), they are sorted from highest to lowest and the top five are returned with a explanation of what earned each song its points.
+Tunes4You 2.0 evolves the original CLI prototype into a complete end-to-end system. A user types any description of how they want to feel "late-night drive, melancholy but atmospheric" and the system extracts genre, mood, energy, and acoustic preferences automatically, scores every song in the catalog, runs four responsible-AI guardrail checks, and renders ranked results with color-coded reason tags in a browser UI. It matters because it demonstrates the full pipeline of a real recommender: natural language in, structured reasoning in the middle, explained results out.
 
 ---
 
-## 4. Data  
+## 4. Architecture
 
-The catalog contains 24 songs spread across six genres: pop, rock, lofi, hip-hop, electronic, and classical. Moods are labeled as happy, sad, calm, or intense. Each song also has numerical scores for energy, acousticness, danceability, valence, and tempo.
-The original starter file had 10 songs. An additional 14 were added manually to increase genre and mood diversity, particularly to add lofi, classical, and a wider range of hip-hop and electronic tracks.
-Several dimensions of musical taste are missing. There is no representation of country, jazz, R&B, folk, metal (as a separate genre from rock), or Latin music. Tempo is stored but not used in scoring. 
+The system uses a two-layer design. The first layer is the language layer: keyword matching converts unstructured text into a structured profile (favorite_genre, favorite_mood, target_energy, likes_acoustic). The second layer is the scoring layer: a weighted formula scores every song against that profile and sorts them highest to lowest.
 
----
+Algorithm Recipe:
 
-## 5. Strengths  
+Rule                    Points
+Genre match             +2.0
+Mood match              +1.0
+Energy proximity        0–1.0
+Danceability proximity  0–0.5
+Acoustic fit            0–0.5
+Max possible score:     5.0
 
-The system works best when a user's preferences are internally consistent and well-represented in the catalog. A few cases where it performed well:
-
-Clear genre + mood combinations. A "Deep Intense Rock" profile correctly surfaced Master of Puppets, Black Dog, and Bohemian Rhapsody in that order. These are intuitive results that match what most people would expect.
-
-Lofi listeners. The Chill Lofi profile returned all three lofi/calm songs as the top three, with a bonus classical track (Classical Gas) sneaking in at #5 on acoustic fit alone, which actually makes sense musically.
-
-Separating styles cleanly. Pop and rock profiles never overlapped in their top 3 results, showing the genre weight is doing its job of keeping results focused.
 
 ---
 
-## 6. Limitations and Bias 
+## 5. Stetup Instructions
 
-Genre dominance. The genre bonus (+2.0) is so large that it is nearly impossible for a song outside the user's preferred genre to appear in the top results, even if it is a near-perfect match on every other dimension. This creates a filter bubble where users only see their own genre reflected back at them.
+1. Clone or download the project
 
-Conflicting preferences are ignored. When a user asks for "sad mood but very high energy," the system cannot detect that these preferences are in tension. It just picks whichever song scores highest under both constraints independently, which often produces a result that satisfies neither preference well.
+2. Install dependencies
+bash pip install flask flask-cors
+3. Run the server
+bashpython app.py
+4. Open your browser
+http://localhost:5000
 
-No confidence floor. When a user asks for a genre or mood not in the catalog (tested with "jazz / nostalgic"), the system still returns five results with no warning. All scores were below 1.7, but the user has no way to know those results are essentially random noise.
-
-Pop overrepresentation. Five of the 24 songs are pop, giving pop-preferring users more variety and better top-5 diversity than users who prefer classical (only 2 songs) or electronic (4 songs).  
-
----
-
-## 7. Evaluation  
-
-Six user profiles were tested. three standard and three adversarial.
-The standard profiles (High-Energy Pop, Chill Lofi, Deep Intense Rock) all produced results that matched intuition. Top results had both genre and mood matches; lower-ranked results had genre matches but missed on mood; and no cross-genre songs appeared in the top 3 for any profile.
-
-The adversarial profiles revealed three specific weaknesses:
-
-Sad + High-Energy (hiphop): The only hiphop/sad song in the catalog (Pursuit of Happiness) ranked #1 despite having energy=0.55 against a target of 0.95. A 40% miss. The genre+mood bonus made it untouchable.
-
-Jazz + Nostalgic: No song matched either preference. The system returned results based on energy and acousticness alone, with no signal that confidence was low.
-
-Classical + Intense + Acoustic: Classical Gas (slow, quiet) outranked Skrillex (perfect energy and mood match) because the classical genre bonus alone was worth more than Skrillex's numeric advantage.
+No API key required. No environment variables needed. The full system runs locally out of the box.
 
 ---
 
-## 8. Future Work  
+## 6. Sample Interactions
 
-Add a confidence threshold. If the highest score in a result set falls below a certain value (say 2.0), the system should display a message like "no strong matches found" rather than returning low-quality results silently.
+Example 1 — Late-Night Drive
+Input: "late-night drive, melancholy but not too slow, atmospheric"
+Extracted profile:
 
-Soften genre dominance. Reduce the genre weight from +2.0 to +1.5 and add a secondary feature.
+Genre: electronic · Mood: sad · Energy: 0.55 · Acoustic: no
 
-Add diversity enforcement. After scoring, check whether the top 5 are all from the same artist or sub-genre and swap in a lower-ranked song from a different artist if so. This prevents the same three songs from appearing every time. 
+Top results:
+#1  Strobe — deadmau5              Score: 3.81
+    • mood match: intense | energy near: 0.65 | electronic feel
+
+#2  Midnight City — M83            Score: 3.76
+    • genre match: electronic | energy near: 0.7
+
+#3  Pursuit of Happiness — Kid Cudi  Score: 2.94
+    • mood match: sad | energy near: 0.55
+Guardrails: Input valid,  Catalog: 4 electronic songs, Confidence 85%, Genre diversity OK
+-------------------------------------
+
+Example 2 — Workout Mode
+Input: "intense workout, very high energy, aggressive, no slow songs"
+Extracted profile:
+
+Genre: rock · Mood: intense · Energy: 0.9 · Acoustic: no
+
+Top results:
+#1  Master of Puppets — Metallica   Score: 4.87
+    • genre match: rock | mood match: intense | energy close: 0.95
+
+#2  Black Dog — Led Zeppelin        Score: 4.82
+    • genre match: rock | mood match: intense | energy close: 0.9
+
+#3  Scary Monsters — Skrillex       Score: 3.82
+    • mood match: intense | energy close: 0.9 | electronic feel
+
+Guardrails: Input valid, Catalog: 5 rock songs, Confidence 108%, Genre filter bubble (all top-3 are rock)
+--------------------------------
+
+Example 3 — Studying / Deep Focus
+Input: "studying, calm and focused, acoustic preferred"
+Extracted profile:
+
+Genre: lofi · Mood: calm · Energy: 0.2 · Acoustic: yes
+
+Top results:
+#1  Lofi Study Beats — ChillHop     Score: 4.75
+    • genre match: lofi | mood match: calm | energy close: 0.2 | acoustic fit
+
+#2  Coffee Shop — Idealism          Score: 4.69
+    • genre match: lofi | mood match: calm | energy near: 0.25 | acoustic fit
+
+#3  Rainy Day Vibes — LoFi Girl     Score: 4.65
+    • genre match: lofi | mood match: calm | energy close: 0.15 | acoustic fit
+
+Guardrails: Input valid, Catalog: 4 lofi songs, Confidence 105%, Genre filter bubble (top-3 all lofi)
 
 ---
 
-## 9. Personal Reflection  
+## 7. Design Decision
 
-The biggest learning moment was realizing how much a single design decision, giving genre a +2.0 weight shaped every result the system produces. It felt like a reasonable choice at the time, but testing revealed it makes the system almost incapable of recommending anything outside a user's stated genre, even when another song would genuinely fit better. 
 
-The adversarial profiles were the most interesting part. I expected them to break the system in obvious ways, but instead they revealed something subtler. The system does not fail loudly, it fails quietly. It still returns five results with confident-looking scores even when it has essentially no useful information to work with.
+Using a local keyword parser makes the system runnable by anyone with zero setup cost and no account required. 
+
+A static file cannot securely hold an API key and cannot run Python scoring logic server-side. Flask separates the concerns cleanly: the frontend handles display, the backend handles all logic. This also makes the scoring engine reusable, app.py exposes a songs endpoint that could power a mobile app or CLI tool without changing any backend code.
+
+Genre is the most stable signal of musical preference — a jazz fan and a metal fan rarely swap. Giving genre double the weight of mood means the system stays in the user's ballpark even when mood or energy signals are ambiguous. The trade-off is a filter bubble: songs outside the detected genre almost never break into the top 3, even if they'd be a great match on every other dimension.
+
+---
+
+## 8. Testing Summary
+
+What worked well:
+
+Clear genre + mood combinations (workout → rock/intense, studying → lofi/calm) produced intuitive, consistent results every time
+The guardrail system correctly identified filter bubbles in 3 of 6 test profiles
+The confidence threshold caught the jazz/nostalgic adversarial profile (no catalog match) and flagged it appropriately
+The Flask server and frontend communicated cleanly with no CORS or routing issues
+
+What didn't work as expected:
+
+The keyword extractor defaults to pop when no genre keywords are detected, which biases ambiguous inputs toward pop results
+Conflicting preferences (sad mood + high energy) are not detected — the system silently picks whichever song scores highest without flagging the contradiction
+The genre filter bubble warning fires for lofi and classical almost every time because those genres have only 3–4 songs in the catalog, so top-3 diversity is mathematically impossible
+
+---
+
+## 9. Reflection
+
+Building Tunes4You 2.0 taught me that the hardest part of an AI system is not the algorithm — it is the layer between human language and machine logic. The scoring engine from VibeFinder 1.0 was straightforward math. The genuinely difficult problem was converting "late-night drive, melancholy but not too slow" into numbers the math could use. Even a simple keyword extractor requires dozens of judgment calls: which words signal "rock"? What energy level does "chill" imply? Where does "sad" end and "calm" begin?
+It also changed how I think about explainability. Adding reason pills to each result; "genre match: lofi (+2.0)" made the system feel trustworthy in a way that a bare ranked list did not. Users could see exactly why a song appeared and disagree with the reasoning if it was wrong. 
+Finally, the guardrail checks taught me that responsible AI design is not about preventing every failure, it is about making failures visible.
+
+
